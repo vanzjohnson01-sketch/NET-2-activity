@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Network Operations</title>
+    <style>
+        :root {
+            --ink: #172033;
+            --muted: #738096;
+            --line: #e7eaf0;
+            --surface: #ffffff;
+            --canvas: #f4f6f9;
+            --navy: #18243a;
+            --blue: #4263eb;
+            --green: #14866d;
+            --red: #b64b50;
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            font-family: Inter, "Segoe UI", Arial, sans-serif;
+            color: var(--ink);
+            background:
+                radial-gradient(circle at 92% 0%, rgba(66, 99, 235, 0.08), transparent 24rem),
+                var(--canvas);
+        }
+
+        .topbar {
+            height: 72px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 44px;
+            border-bottom: 1px solid var(--line);
+            background: rgba(255, 255, 255, 0.92);
+        }
+
+        .brand,
+        .brand-copy,
+        .top-actions,
+        .top-status,
+        .device-heading,
+        .status-row,
+        .result-heading,
+        .command-name {
+            display: flex;
+            align-items: center;
+        }
+
+        .brand { gap: 11px; }
+
+        .brand-copy { gap: 24px; }
+
+        .brand-name {
+            font-size: 15px;
+            font-weight: 800;
+        }
+
+        nav {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .nav-link {
+            padding: 8px 12px;
+            border-radius: 7px;
+            color: var(--muted);
+            font-size: 13px;
+            font-weight: 700;
+        }
+
+        .nav-link.active {
+            color: var(--blue);
+            background: #eef2ff;
+        }
+
+        .top-actions { gap: 16px; }
+
+        .top-status {
+            gap: 8px;
+            color: var(--muted);
+            font-size: 12px;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            flex: 0 0 8px;
+            border-radius: 50%;
+            background: #32ad7a;
+            box-shadow: 0 0 0 3px rgba(50, 173, 122, 0.12);
+        }
+
+        main {
+            width: min(1180px, calc(100% - 48px));
+            margin: 0 auto;
+            padding: 38px 0 48px;
+        }
+
+        .page-heading {
+            display: flex;
+            align-items: flex-end;
+            justify-content: space-between;
+            margin-bottom: 22px;
+        }
+
+        .page-heading h1 {
+            margin: 0;
+            font-size: 27px;
+            letter-spacing: -0.03em;
+        }
+
+        .breadcrumb {
+            margin: 0 0 6px;
+            color: var(--muted);
+            font-size: 12px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+        }
+
+        .environment {
+            padding: 7px 10px;
+            border: 1px solid var(--line);
+            border-radius: 7px;
+            color: var(--muted);
+            background: var(--surface);
+            font-size: 12px;
+        }
+
+        .dashboard {
+            display: grid;
+            grid-template-columns: 280px minmax(0, 1fr);
+            gap: 18px;
+            align-items: start;
+        }
+
+        .card {
+            border: 1px solid var(--line);
+            border-radius: 12px;
+            background: var(--surface);
+            box-shadow: 0 8px 28px rgba(31, 45, 72, 0.045);
+        }
+
+        .device-panel { overflow: hidden; }
+
+        .panel-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            height: 58px;
+            padding: 0 18px;
+            border-bottom: 1px solid var(--line);
+        }
+
+        .panel-head strong {
+            font-size: 13px;
+        }
+
+        .panel-tag {
+            padding: 5px 8px;
+            border-radius: 999px;
+            color: var(--green);
+            background: #eaf7f2;
+            font-size: 10px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .device-content { padding: 18px; }
+
+        .device-heading {
+            gap: 12px;
+            margin-bottom: 18px;
+        }
+
+        .router-icon {
+            width: 48px;
+            height: 48px;
+            display: grid;
+            flex: 0 0 48px;
+            place-items: center;
+            border-radius: 12px;
+            color: var(--navy);
+            background: #edf0f5;
+            font-size: 20px;
+        }
+
+        .device-heading strong {
+            display: block;
+            margin-bottom: 4px;
+            font-size: 15px;
+        }
+
+        .device-heading span {
+            color: var(--muted);
+            font-size: 12px;
+        }
+
+        .detail-list {
+            margin: 0;
+            border-top: 1px solid var(--line);
+        }
+
+        .detail-row {
+            display: grid;
+            grid-template-columns: 72px 1fr;
+            padding: 11px 0;
+            border-bottom: 1px solid #f0f2f5;
+            font-size: 12px;
+        }
+
+        .detail-row dt {
+            color: var(--muted);
+        }
+
+        .detail-row dd {
+            margin: 0;
+            font-weight: 750;
+        }
+
+        .status-row {
+            gap: 7px;
+            color: var(--green);
+        }
+
+        .status-row .status-dot {
+            width: 7px;
+            height: 7px;
+            flex-basis: 7px;
+        }
+
+        .run-button {
+            width: 100%;
+            height: 44px;
+            margin-top: 16px;
+            border: 0;
+            border-radius: 8px;
+            color: #fff;
+            background: var(--blue);
+            font: inherit;
+            font-size: 13px;
+            font-weight: 800;
+            cursor: pointer;
+            transition: background 150ms ease, transform 150ms ease;
+        }
+
+        .run-button:hover {
+            background: #3454ca;
+            transform: translateY(-1px);
+        }
+
+        .workspace { min-width: 0; }
+
+        .alert {
+            margin-bottom: 14px;
+            padding: 13px 15px;
+            border: 1px solid #ecc9cb;
+            border-radius: 8px;
+            color: var(--red);
+            background: #fff7f7;
+            font-size: 13px;
+        }
+
+        .empty-state {
+            min-height: 472px;
+            display: grid;
+            place-items: center;
+            text-align: center;
+        }
+
+        .empty-inner {
+            max-width: 340px;
+        }
+
+        .empty-icon {
+            width: 64px;
+            height: 64px;
+            margin: 0 auto 18px;
+            display: grid;
+            place-items: center;
+            border-radius: 18px;
+            color: var(--blue);
+            background: #edf1ff;
+            font-size: 22px;
+        }
+
+        .empty-inner h2 {
+            margin: 0 0 8px;
+            font-size: 17px;
+        }
+
+        .empty-inner p {
+            margin: 0;
+            color: var(--muted);
+            font-size: 13px;
+            line-height: 1.65;
+        }
+
+        .results {
+            display: grid;
+            gap: 12px;
+        }
+
+        .result-card {
+            overflow: hidden;
+        }
+
+        .result-heading {
+            min-height: 54px;
+            justify-content: space-between;
+            padding: 9px 10px 9px 16px;
+            border-bottom: 1px solid var(--line);
+        }
+
+        .command-name {
+            gap: 9px;
+            font-size: 13px;
+            font-weight: 800;
+        }
+
+        .success-mark {
+            width: 20px;
+            height: 20px;
+            display: grid;
+            place-items: center;
+            border-radius: 50%;
+            color: #fff;
+            background: var(--green);
+            font-size: 11px;
+        }
+
+        .copy-button {
+            height: 32px;
+            border: 1px solid var(--line);
+            border-radius: 6px;
+            color: var(--muted);
+            background: #fff;
+            font: inherit;
+            font-size: 11px;
+            cursor: pointer;
+        }
+
+        .copy-button:hover {
+            color: var(--ink);
+            border-color: #c9d0dc;
+        }
+
+        pre {
+            max-height: 260px;
+            margin: 0;
+            overflow: auto;
+            padding: 16px 18px;
+            color: #e0e7f2;
+            background: #182236;
+            font: 12px/1.58 "Cascadia Code", Consolas, monospace;
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
+
+        @media (max-width: 900px) {
+            .topbar { padding: 0 24px; }
+            nav { display: none; }
+            main { width: min(100% - 32px, 1180px); }
+        }
+
+        @media (max-width: 700px) {
+            .topbar { height: 64px; padding: 0 16px; }
+            .top-status { display: none; }
+            main { width: calc(100% - 32px); padding-top: 24px; }
+            .page-heading { align-items: center; }
+            .environment { display: none; }
+            .page-heading h1 { font-size: 23px; }
+            .dashboard { grid-template-columns: 1fr; }
+            .empty-state { min-height: 340px; }
+        }
+    </style>
+</head>
+<body>
+    <header class="topbar">
+        <div class="brand-copy">
+            <div class="brand">
+                <span class="brand-name">Network Automation</span>
+            </div>
+            <nav aria-label="Primary navigation">
+                <span class="nav-link active">Console</span>
+                <span class="nav-link">Inventory</span>
+                <span class="nav-link">History</span>
+            </nav>
+        </div>
+        <div class="top-actions">
+            <div class="top-status"><span class="status-dot"></span>Platform online</div>
+        </div>
+    </header>
+
+    <main>
+        <div class="page-heading">
+            <div>
+                <p class="breadcrumb">Automation / Diagnostics</p>
+                <h1>Device console</h1>
+            </div>
+            <div class="environment">Cisco IOS environment</div>
+        </div>
+
+        <div class="dashboard">
+            <aside class="card device-panel">
+                <div class="panel-head">
+                    <strong>Selected device</strong>
+                    <span class="panel-tag">Ready</span>
+                </div>
+                <div class="device-content">
+                    <div class="device-heading">
+                        <div class="router-icon">&#8644;</div>
+                        <div>
+                            <strong>Core Router</strong>
+                            <span>Cisco IOS / Telnet</span>
+                        </div>
+                    </div>
+
+                    <dl class="detail-list">
+                        <div class="detail-row"><dt>Host</dt><dd>192.168.10.33</dd></div>
+                        <div class="detail-row"><dt>Port</dt><dd>32770</dd></div>
+                        <div class="detail-row"><dt>Username</dt><dd>admin</dd></div>
+                        <div class="detail-row">
+                            <dt>Status</dt>
+                            <dd><span class="status-row"><span class="status-dot"></span>Available</span></dd>
+                        </div>
+                    </dl>
+
+                    <form method="POST">
+                        <button class="run-button" type="submit">Run diagnostics</button>
+                    </form>
+                </div>
+            </aside>
+
+            <section class="workspace">
+                {% if error %}
+                <div class="alert">{{ error }}</div>
+                {% endif %}
+
+                {% if results %}
+                <div class="results">
+                    {% for command, output in results.items() %}
+                    <article class="card result-card">
+                        <div class="result-heading">
+                            <div class="command-name">
+                                <span class="success-mark">&#10003;</span>
+                                {{ command }}
+                            </div>
+                            <button class="copy-button" type="button" data-copy="{{ loop.index }}">Copy output</button>
+                        </div>
+                        <pre id="output-{{ loop.index }}">{{ output }}</pre>
+                    </article>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="card empty-state">
+                    <div class="empty-inner">
+                        <div class="empty-icon">&#9654;</div>
+                        <h2>Ready to collect diagnostics</h2>
+                        <p>Run the automation to retrieve version details, interface status, and the running configuration.</p>
+                    </div>
+                </div>
+                {% endif %}
+            </section>
+        </div>
+    </main>
+
+    <script>
+        document.querySelectorAll(".copy-button").forEach(function (button) {
+            button.addEventListener("click", async function () {
+                const output = document.getElementById("output-" + button.dataset.copy);
+                await navigator.clipboard.writeText(output.textContent);
+                button.textContent = "Copied";
+                setTimeout(function () { button.textContent = "Copy output"; }, 1500);
+            });
+        });
+    </script>
+</body>
+</html>

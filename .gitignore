@@ -1,0 +1,38 @@
+# Virtual environments
+venv/
+.venv/
+env/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Flask
+instance/
+.webassets-cache/
+
+# Environment and local configuration
+.env
+.env.*
+!.env.example
+
+# Logs and databases
+*.log
+*.sqlite
+*.sqlite3
+*.db
+
+# IDE and editor files
+.vscode/
+.idea/
+*.code-workspace
+
+# Operating system files
+.DS_Store
+Thumbs.db
+
+# Python packaging
+build/
+dist/
+*.egg-info/
